@@ -1,0 +1,68 @@
+<script nonce='{{ csp_nonce() }}'
+        src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-with-polyfills-latest.js"></script>
+
+<script nonce='{{ csp_nonce() }}'>
+
+    console.log(window.location.origin + '/reg/yandex')
+
+    window.onload = function()
+    {
+        window.YaAuthSuggest.init({
+                client_id: '60822e64d7844f4c8a8a0d45c9455770',
+                response_type: 'token',
+                //redirect_uri: 'https://examplesite.com/suggest/token'
+            },
+            window.location.origin, {
+                view: 'button',
+                parentId: 'container',
+                buttonView: 'icon',
+                buttonTheme: 'light',
+                buttonSize: 'm',
+                buttonBorderRadius: 4
+            }
+        )
+            .then(function(result)
+            {
+                console.log('result->', result)
+                return result.handler()
+            })
+            .then(function(data)
+            {
+                console.log('Сообщение с токеном: ', data);
+
+                // Отправляем токен в приложение
+                fetch(window.location.origin + '/reg/yandex', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-App-Reg-Key': 'true' // ключ
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(function(res)
+                    {
+                        console.log('result->', res)
+                        return res.json()
+                    })
+                    .then(function(res)
+                    {
+                        let $dangerToast = "{ \"type\":\"danger\" , " +
+                            "\"header\":\"Создание аккаунта\"  , " +
+                            "\"message\" : \" " + res[0] + "\" }";
+                        createToast(JSON.parse($dangerToast));
+                        return
+
+                    })
+                    .catch(function(err)
+                    {
+                        console.log('Что-то пошло не так: ', err);
+                    });
+
+
+            })
+            .catch(function(error)
+            {
+                console.log('Что-то пошло не так: ', error);
+            });
+    };
+</script>

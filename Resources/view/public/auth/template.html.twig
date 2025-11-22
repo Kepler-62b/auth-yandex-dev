@@ -1,0 +1,12 @@
+<script nonce='{{ csp_nonce() }}'
+        src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-token-with-polyfills-latest.js"></script>
+
+<script nonce='{{ csp_nonce() }}'>
+    window.onload = function()
+    {
+        window.YaSendSuggestToken("https://kepler.baks.dev",
+            {
+                "flag": false
+            });
+    };
+</script>
