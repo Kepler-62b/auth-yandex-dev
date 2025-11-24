@@ -33,7 +33,6 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\RetryableHttpClient;
 use Symfony\Contracts\Cache\CacheInterface;
 
-// @TODO храним идентификаторы для авторизации в БД?
 abstract class YandexOAuth
 {
     private string $Authorization;
@@ -48,6 +47,7 @@ abstract class YandexOAuth
         $this->Authorization = base64_encode($this->clientId.':'.$this->clientSecret);
     }
 
+    /** Для перезаписи данных авторизации */
     public function forAuthorization(string $clientId,string $clientSecret): self
     {
         $this->Authorization = base64_encode($clientId.':'.$clientSecret);

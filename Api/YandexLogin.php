@@ -46,7 +46,7 @@ abstract class YandexLogin
     ) {
     }
 
-    // @TODO добавить описание
+    /** Yandex OAuth token для запроса */
     public function token(YandexOAuthTokenDTO $token): self
     {
         $this->token = $token;
