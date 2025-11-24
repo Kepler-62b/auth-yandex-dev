@@ -25,6 +25,8 @@ namespace BaksDev\Auth\Yandex\UseCase\Public\New;
 
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEventInterface;
 use BaksDev\Auth\Yandex\Type\Event\AccountYandexEventUid;
+use BaksDev\Auth\Yandex\UseCase\Public\New\Invariable\AccountYandexInvariableDTO;
+use BaksDev\Auth\Yandex\UseCase\Public\New\Status\AccountYandexStatusDTO;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -42,13 +44,18 @@ final class NewAccountYandexDTO implements AccountYandexEventInterface
     /**
      * Идентификатор пользователя в Yandex
      */
-    #[Assert\NotBlank]
-    public string $cid;
+    #[Assert\Valid]
+    private AccountYandexInvariableDTO $invariable;
 
     /**
-     * Состояние аккаунта
+     * Идентификатор пользователя в Yandex
      */
-    private bool $active = true;
+    #[Assert\Valid]
+    private AccountYandexStatusDTO $status;
+
+    public function __construct() {
+        $this->status = new AccountYandexStatusDTO();
+    }
 
     /**
      * Идентификатор события
@@ -61,28 +68,28 @@ final class NewAccountYandexDTO implements AccountYandexEventInterface
     /**
      * Идентификатор пользователя в Yandex
      */
-    public function getCid(): string
+    public function getInvariable(): AccountYandexInvariableDTO
     {
-        return $this->cid;
+        return $this->invariable;
     }
 
-    public function setCid(string $cid): NewAccountYandexDTO
+    public function setInvariable(AccountYandexInvariableDTO $invariable): self
     {
-        $this->cid = $cid;
+        $this->invariable = $invariable;
         return $this;
     }
 
     /**
-     * Состояние аккаунта
+     * Статус аккаунта
      */
-    public function setReceived(bool $active): NewAccountYandexDTO
+    public function setStatus(AccountYandexStatusDTO $status): NewAccountYandexDTO
     {
-        $this->active = $active;
+        $this->status = $status;
         return $this;
     }
 
-    public function getReceived(): bool
+    public function getStatus(): AccountYandexStatusDTO
     {
-        return $this->active;
+        return $this->status;
     }
 }

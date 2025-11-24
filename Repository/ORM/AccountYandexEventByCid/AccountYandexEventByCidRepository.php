@@ -28,6 +28,7 @@ namespace BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid;
 
 use BaksDev\Auth\Yandex\Entity\AccountYandex;
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEvent;
+use BaksDev\Auth\Yandex\Entity\Event\Invariable\AccountYandexInvariable;
 use BaksDev\Core\Doctrine\ORMQueryBuilder;
 
 final readonly class AccountYandexEventByCidRepository implements AccountYandexEventByCidInterface
@@ -37,9 +38,9 @@ final readonly class AccountYandexEventByCidRepository implements AccountYandexE
     ) {}
 
     /**
-     * Метод возвращает
+     * Метод возвращает текущее активное событие
      */
-    public function find(string $cid): AccountYandexEvent|false
+    public function find(string $yid): AccountYandexEvent|false
     {
         $orm = $this->ORMQueryBuilder->createQueryBuilder(self::class);
 
@@ -52,11 +53,21 @@ final readonly class AccountYandexEventByCidRepository implements AccountYandexE
                 'event',
                 'WITH',
                 '
-                    event.id = main.event AND
-                    event.cid = :cid
+                    event.id = main.event
+                    '
+            );
+
+        $orm
+            ->join(
+                AccountYandexInvariable::class,
+                'invariable',
+                'WITH',
+                '
+                    invariable.event = main.event AND
+                    invariable.yid = :yid
                     '
             )
-            ->setParameter(key: 'cid', value: $cid);
+            ->setParameter(key: 'yid', value: $yid);
 
         return $orm->getOneOrNullResult() ?: false;
     }

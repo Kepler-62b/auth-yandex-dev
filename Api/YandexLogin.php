@@ -25,7 +25,9 @@ declare(strict_types=1);
 
 namespace BaksDev\Auth\Yandex\Api;
 
+use BaksDev\Auth\Yandex\Api\AuthToken\YandexOAuthTokenDTO;
 use BaksDev\Core\Cache\AppCacheInterface;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -33,38 +35,39 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\RetryableHttpClient;
 use Symfony\Contracts\Cache\CacheInterface;
 
-// @TODO храним идентификаторы для авторизации в БД?
-abstract class YandexAuth
+abstract class YandexLogin
 {
-    private string $Authorization;
+    private YandexOAuthTokenDTO|false $token = false;
 
     public function __construct(
         #[Autowire(env: 'APP_ENV')] private readonly string $environment,
-        #[Autowire(env: 'YANDEX_CLIENT_ID')] private readonly string $clientId,
-        #[Autowire(env: 'YANDEX_CLIENT_SECRET')] private readonly string $clientSecret,
-        #[Target('yandexMarketLogger')] protected readonly LoggerInterface $logger,
+        #[Target('authYandexLogger')] protected readonly LoggerInterface $logger,
         private readonly AppCacheInterface $cache,
     ) {
-        $this->Authorization = base64_encode($this->clientId.':'.$this->clientSecret);
     }
 
-    public function forAuthorization(string $clientId,string $clientSecret,): self
+    // @TODO добавить описание
+    public function token(YandexOAuthTokenDTO $token): self
     {
-        $this->Authorization = base64_encode($clientId.':'.$clientSecret);
+        $this->token = $token;
         return $this;
     }
 
     public function TokenHttpClient(): RetryableHttpClient
     {
+        if(false === $this->token instanceof YandexOAuthTokenDTO)
+        {
+            throw new InvalidArgumentException('Не передан Yandex OAuth token');
+        }
+
         return new RetryableHttpClient(
             HttpClient::create(['headers' =>
                 [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Authorization' => 'Basic '.$this->Authorization,
+                    'Authorization' => 'OAuth '.$this->token->getAccessToken(),
                 ]
             ])
                 ->withOptions([
-                    'base_uri' => 'https://oauth.yandex.ru/',
+                    'base_uri' => 'https://login.yandex.ru/',
                     'verify_host' => false,
                 ]),
         );
@@ -85,8 +88,8 @@ abstract class YandexAuth
         return $this->cache->init($namespace);
     }
 
-    protected function getAuthorization(): string
+    protected function getToken(): YandexOAuthTokenDTO
     {
-        return $this->Authorization;
+        return $this->token;
     }
 }

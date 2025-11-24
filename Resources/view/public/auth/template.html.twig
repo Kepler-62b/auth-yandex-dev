@@ -1,12 +1,28 @@
-<script nonce='{{ csp_nonce() }}'
-        src="https://yastatic.net/s3/passport-sdk/autofill/v1/sdk-suggest-token-with-polyfills-latest.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Авторизация...</title>
+</head>
+<body>
+
+<p>Авторизация завершена. Окно закроется автоматически</p>
 
 <script nonce='{{ csp_nonce() }}'>
-    window.onload = function()
+
+    /** Проверяем, открыто ли это окно как всплывающее (а не в обычной вкладке) */
+    if(window.opener && window.opener !== window)
     {
-        window.YaSendSuggestToken("https://kepler.baks.dev",
-            {
-                "flag": false
-            });
-    };
+        window.opener.postMessage({type: 'YANDEX_AUTH_SUCCESS'}, '*');
+
+        /** Закрываем текущее окно */
+        window.close();
+    } else
+    {
+        /** Если окно не было открыто через window.open — просто показываем сообщение */
+        document.body.innerHTML = '<p>Авторизация завершена. Окно закроется автоматически</p>';
+        window.location.replace(window.location.origin);
+    }
 </script>
+</body>
+</html>

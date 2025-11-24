@@ -19,31 +19,28 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
- *
  */
 
 declare(strict_types=1);
 
-namespace BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid\Tests;
+namespace BaksDev\Auth\Yandex\UseCase\Public\New\Status;
 
-use BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid\AccountYandexEventByCidInterface;
-use PHPUnit\Framework\Attributes\Group;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\DependencyInjection\Attribute\When;
+use BaksDev\Auth\Yandex\Entity\Event\Status\AccountYandexStatusInterface;
 
-#[Group('auth-yandex')]
-#[When(env: 'test')]
-class AccountYandexEventByCidRepositoryTest extends KernelTestCase
+/** @see AccountYandexStatus */
+final class AccountYandexStatusDTO implements AccountYandexStatusInterface
 {
-    public function testRepository(): void
+    /** Значение свойства */
+    private bool $value = true;
+
+    public function getValue(): bool
     {
-        self::assertTrue(true);
-        return;
+        return $this->value;
+    }
 
-        /** @var AccountYandexEventByCidInterface $AccountYandexEventByCidInterface */
-        $AccountYandexEventByCidInterface = self::getContainer()->get(AccountYandexEventByCidInterface::class);
-
-        $result = $AccountYandexEventByCidInterface
-            ->find('');
+    public function setValue(bool $value): self
+    {
+        $this->value = $value;
+        return $this;
     }
 }

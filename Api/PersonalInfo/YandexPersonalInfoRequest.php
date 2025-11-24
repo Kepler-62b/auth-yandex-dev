@@ -23,44 +23,46 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Auth\Yandex\Api\AuthToken;
+namespace BaksDev\Auth\Yandex\Api\PersonalInfo;
 
-use BaksDev\Auth\Yandex\Api\YandexAuth;
+use BaksDev\Auth\Yandex\Api\AuthToken\YandexOAuthTokenDTO;
+use BaksDev\Auth\Yandex\Api\YandexLogin;
 use DateInterval;
 use Symfony\Contracts\Cache\ItemInterface;
 
-final class YandexAuthTokenRequest extends YandexAuth
+/**
+ * Обмен токена на информацию о пользователе
+ * @see https://yandex.ru/dev/id/doc/ru/user-information
+ */
+final class YandexPersonalInfoRequest extends YandexLogin
 {
-    /**
-     */
-    public function get(string $code)
+    public function get(YandexOAuthTokenDTO $token): YandexPersonalInfoDTO|false
     {
         /** Кешируем результат запроса */
         $cache = $this->getCacheInit('auth-yandex');
-        $key = 'auth-yandex-'.$this->getAuthorization();
 
-        $content = $cache->get($key, function(ItemInterface $item) use ($code) {
+        $key = 'yandex-personal-info'.$token->getAccessToken();
+
+        $content = $cache->get($key, function(ItemInterface $item) use ($token) {
 
             $item->expiresAfter(DateInterval::createFromDateString('1 seconds'));
 
-            $body = http_build_query([
-                'grant_type' => 'authorization_code',
-                'code' => $code,
-            ]);
-
             /** Делаем запрос на данные пользователя */
-            $response = $this->TokenHttpClient()
+            $response = $this
+                ->token($token)
+                ->TokenHttpClient()
                 ->request(
-                    'POST',
-                    '/token',
-                    ['body' => $body],
+                    'GET',
+                    '/info',
+                    ['query' => ['format' => 'json']],
                 );
 
             if($response->getStatusCode() !== 200)
             {
                 $this->logger->critical(
-                    message: 'Ошибка получения токена',
+                    message: 'Ошибка получения информации о пользователе',
                     context: [
+                        $token,
                         $response,
                         self::class.':'.__LINE__,
                     ]);
@@ -70,12 +72,12 @@ final class YandexAuthTokenRequest extends YandexAuth
 
             $content = $response->toArray(false);
 
-            $item->expiresAfter(DateInterval::createFromDateString($content['expires_in'].' seconds'));
+            $item->expiresAfter(DateInterval::createFromDateString('1 day'));
 
             return $content;
 
         });
 
-        return $content;
+        return false !== $content ? new YandexPersonalInfoDTO(...$content) : false;
     }
 }

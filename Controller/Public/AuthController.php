@@ -19,12 +19,13 @@
 namespace BaksDev\Auth\Yandex\Controller\Public;
 
 use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 
+/** @see YandexAuthenticator */
 #[AsController]
 final class AuthController extends AbstractController
 {
@@ -33,15 +34,14 @@ final class AuthController extends AbstractController
         Request $request,
     ): ?Response
     {
-        dd();
+        /** Если пользователь не аутентифицирован через YandexAuthenticator */
+        if(false === $this->getUsr() instanceof UserInterface)
+        {
+            return $this->render(
+                dir: 'public.err',
+            );
+        }
 
-        return new Response('', 200, [
-            'Content-Type' => 'text/html; charset=utf-8'
-        ]);
-
-        return null;
-
-        return new JsonResponse(['success']);
+        return $this->render();
     }
-
 }

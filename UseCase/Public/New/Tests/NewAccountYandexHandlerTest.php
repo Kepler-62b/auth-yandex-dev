@@ -28,6 +28,7 @@ namespace BaksDev\Auth\Yandex\UseCase\Public\New\Tests;
 
 use BaksDev\Auth\Yandex\Entity\AccountYandex;
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEvent;
+use BaksDev\Auth\Yandex\UseCase\Public\New\Invariable\AccountYandexInvariableDTO;
 use BaksDev\Auth\Yandex\UseCase\Public\New\NewAccountYandexDTO;
 use BaksDev\Auth\Yandex\UseCase\Public\New\NewAccountYandexHandler;
 use BaksDev\Users\User\Entity\User;
@@ -46,18 +47,10 @@ class NewAccountYandexHandlerTest extends KernelTestCase
         /** @var EntityManagerInterface $em */
         $em = self::getContainer()->get(EntityManagerInterface::class);
 
-//        $User = $em->getRepository(User::class)
-//            ->find(UserUid::TEST);
-//
-//        if($User)
-//        {
-//            $em->remove($User);
-//        }
-
         $AccountYandex = $em->getRepository(AccountYandex::class)
             ->find(UserUid::TEST);
 
-        if($AccountYandex)
+        if($AccountYandex instanceof AccountYandex)
         {
             $em->remove($AccountYandex);
         }
@@ -70,6 +63,13 @@ class NewAccountYandexHandlerTest extends KernelTestCase
             $em->remove($remove);
         }
 
+        $User = $em->getReference(User::class, new UserUid(UserUid::TEST));
+
+        if($User instanceof User)
+        {
+            $em->remove($User);
+        }
+
         $em->flush();
     }
 
@@ -77,7 +77,10 @@ class NewAccountYandexHandlerTest extends KernelTestCase
     {
         $NewAccountYandexDTO = new NewAccountYandexDTO();
 
-        $NewAccountYandexDTO->setCid('bnynw6dht8d7c5m2r0qgjqba6m');
+        /** Invariable */
+        $AccountYandexInvariableDTO = new AccountYandexInvariableDTO();
+        $AccountYandexInvariableDTO->setYid('bnynw6dht8d7c5m2r0qgjqba6m');
+        $NewAccountYandexDTO->setInvariable($AccountYandexInvariableDTO);
 
         /** @var NewAccountYandexHandler $NewAccountYandexHandler */
         $NewAccountYandexHandler = self::getContainer()->get(NewAccountYandexHandler::class);

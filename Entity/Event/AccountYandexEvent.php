@@ -26,19 +26,18 @@ declare(strict_types=1);
 namespace BaksDev\Auth\Yandex\Entity\Event;
 
 use BaksDev\Auth\Yandex\Entity\AccountYandex;
+use BaksDev\Auth\Yandex\Entity\Event\Invariable\AccountYandexInvariable;
 use BaksDev\Auth\Yandex\Entity\Event\Modify\AccountYandexModify;
+use BaksDev\Auth\Yandex\Entity\Event\Status\AccountYandexStatus;
 use BaksDev\Auth\Yandex\Type\Event\AccountYandexEventUid;
 use BaksDev\Core\Entity\EntityEvent;
 use BaksDev\Users\User\Type\Id\UserUid;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'account_yandex_event')]
-#[ORM\Index(columns: ['cid'])]
-#[ORM\UniqueConstraint(columns: ['cid'])]
 class AccountYandexEvent extends EntityEvent
 {
     /**
@@ -59,17 +58,16 @@ class AccountYandexEvent extends EntityEvent
     private ?UserUid $account = null;
 
     /**
-     * Идентификатор пользователя в Yandex
+     * Постоянная величина
      */
-    #[Assert\NotBlank]
-    #[ORM\Column(type: Types::STRING, nullable: false)]
-    private string $cid;
+    #[ORM\OneToOne(targetEntity: AccountYandexInvariable::class, mappedBy: 'event', cascade: ['all'], fetch: 'EAGER')]
+    private AccountYandexInvariable $invariable;
 
     /**
-     * Состояние аккаунта
+     * Статус аккаунта
      */
-    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => true])]
-    private bool $active = true;
+    #[ORM\OneToOne(targetEntity: AccountYandexStatus::class, mappedBy: 'event', cascade: ['all'], fetch: 'EAGER')]
+    private AccountYandexStatus $status;
 
     /**
      * Модификатор
@@ -140,8 +138,8 @@ class AccountYandexEvent extends EntityEvent
         throw new InvalidArgumentException(sprintf('Class %s interface error', $dto::class));
     }
 
-    public function isInactive(): bool
+    public function getStatus(): AccountYandexStatus
     {
-        return false === $this->active;
+        return $this->status;
     }
 }

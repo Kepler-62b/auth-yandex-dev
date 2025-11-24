@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Авторизация...</title>
+</head>
+<body>
+
+<p>Access denied</p>
+
+<script nonce='{{ csp_nonce() }}'>
+
+    window.opener.postMessage({type: 'YANDEX_AUTH_FALIED'}, '*');
+
+    window.close();
+
+</script>
+</body>
+</html>

@@ -19,31 +19,34 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
- *
  */
 
 declare(strict_types=1);
 
-namespace BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid\Tests;
+namespace BaksDev\Auth\Yandex\Api\PersonalInfo\Tests;
 
-use BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid\AccountYandexEventByCidInterface;
-use PHPUnit\Framework\Attributes\Group;
+use BaksDev\Auth\Yandex\Api\AuthToken\YandexOAuthTokenDTO;
+use BaksDev\Auth\Yandex\Api\PersonalInfo\YandexPersonalInfoRequest;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
-#[Group('auth-yandex')]
 #[When(env: 'test')]
-class AccountYandexEventByCidRepositoryTest extends KernelTestCase
+final class YandexPersonalInfoDebugRequestTest extends KernelTestCase
 {
-    public function testRepository(): void
+    public function testToken(): void
     {
-        self::assertTrue(true);
-        return;
+        self::bootKernel();
 
-        /** @var AccountYandexEventByCidInterface $AccountYandexEventByCidInterface */
-        $AccountYandexEventByCidInterface = self::getContainer()->get(AccountYandexEventByCidInterface::class);
+        /** @var YandexPersonalInfoRequest $YandexPersonalInfoRequest */
+        $YandexPersonalInfoRequest = static::getContainer()->get(YandexPersonalInfoRequest::class);
 
-        $result = $AccountYandexEventByCidInterface
-            ->find('');
+        $YandexAuthTokenDTO = new YandexOAuthTokenDTO(
+            '',
+            0,
+            '',
+            ''
+        );
+
+        $YandexPersonalInfoDTO = $YandexPersonalInfoRequest->get($YandexAuthTokenDTO);
     }
 }

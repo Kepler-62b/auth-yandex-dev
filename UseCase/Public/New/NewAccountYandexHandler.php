@@ -32,8 +32,7 @@ final class NewAccountYandexHandler extends AbstractHandler
 {
     public function handle(NewAccountYandexDTO $command): string|AccountYandex
     {
-        /** Создаем пользователя User */
-
+        /** Создаем нового пользователя */
         $User = new User();
 
         $this
@@ -47,14 +46,7 @@ final class NewAccountYandexHandler extends AbstractHandler
         }
 
         $this->persist($User);
-
         $this->flush();
-
-        /* Отправляем сообщение в шину */
-        //        $this->messageDispatch->dispatch(
-        //            message: new ConfirmationAccountMessage($this->main->getId(), $this->main->getEvent(), new Locale(Ru::class)),
-        //            transport: 'account'
-        //        );
 
         return $this->main;
     }

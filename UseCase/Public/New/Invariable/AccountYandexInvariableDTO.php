@@ -24,26 +24,28 @@
 
 declare(strict_types=1);
 
-namespace BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid\Tests;
+namespace BaksDev\Auth\Yandex\UseCase\Public\New\Invariable;
 
-use BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid\AccountYandexEventByCidInterface;
-use PHPUnit\Framework\Attributes\Group;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Symfony\Component\DependencyInjection\Attribute\When;
+use BaksDev\Auth\Yandex\Entity\Event\Invariable\AccountYandexInvariableInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[Group('auth-yandex')]
-#[When(env: 'test')]
-class AccountYandexEventByCidRepositoryTest extends KernelTestCase
+/** @see AccountYandexInvariable */
+final class AccountYandexInvariableDTO implements AccountYandexInvariableInterface
 {
-    public function testRepository(): void
+    /**
+     * Идентификатор пользователя в Yandex
+     */
+    #[Assert\NotBlank]
+    private string $yid;
+
+    public function getYid(): string
     {
-        self::assertTrue(true);
-        return;
+        return $this->yid;
+    }
 
-        /** @var AccountYandexEventByCidInterface $AccountYandexEventByCidInterface */
-        $AccountYandexEventByCidInterface = self::getContainer()->get(AccountYandexEventByCidInterface::class);
-
-        $result = $AccountYandexEventByCidInterface
-            ->find('');
+    public function setYid(string $yid): self
+    {
+        $this->yid = $yid;
+        return $this;
     }
 }

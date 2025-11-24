@@ -33,5 +33,5 @@ interface AccountYandexEventByCidInterface
     /**
      * Метод возвращает текущее активное событие
      */
-    public function find(string $cid): AccountYandexEvent|false;
+    public function find(string $yid): AccountYandexEvent|false;
 }
