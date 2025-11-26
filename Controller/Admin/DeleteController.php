@@ -62,7 +62,7 @@ final class DeleteController extends AbstractController
 
         if($form->isSubmitted() && $form->isValid() && $form->has('account_yandex_delete'))
         {
-            //            $this->refreshTokenForm($form); // @TODO удалить при релизе
+            $this->refreshTokenForm($form);
 
             $handle = $AccountYandexDeleteHandler->handle($AccountYandexDeleteDTO);
 

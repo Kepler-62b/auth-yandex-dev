@@ -33,7 +33,6 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 /**
  * Проверяет существование записи с аккаунтом Яндекс по идентификатору из Invariable
  */
-#[Autoconfigure(public: true)] // @TODO удалить при релизе
 final readonly class ExistAccountYandexByYidRepository implements ExistAccountYandexByYidInterface
 {
     public function __construct(
