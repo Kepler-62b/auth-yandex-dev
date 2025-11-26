@@ -57,13 +57,13 @@ final class IndexController extends AbstractController
             ->handleRequest($request);
 
         /** Получаем список */
-        $AccountTelegram = $allAccountYandexRepository
+        $AccountYandex = $allAccountYandexRepository
             ->search($search)
             ->findAll();
 
         return $this->render(
             [
-                'query' => $AccountTelegram,
+                'query' => $AccountYandex,
                 'search' => $searchForm->createView(),
             ]
         );
