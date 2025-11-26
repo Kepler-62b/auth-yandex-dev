@@ -22,35 +22,35 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+namespace BaksDev\Auth\Yandex\UseCase\Admin\Edit;
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+use BaksDev\Auth\Yandex\Entity\AccountYandex;
+use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEvent;
+use BaksDev\Auth\Yandex\Messenger\AccountYandexMessage;
+use BaksDev\Core\Entity\AbstractHandler;
 
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
+final class EditAccountYandexHandler extends AbstractHandler
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
+    public function handle(EditAccountYandexDTO $command): AccountYandex|string
     {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
+        $this
+            ->setCommand($command)
+            ->preEventPersistOrUpdate(new AccountYandex($command->getAccount()), AccountYandexEvent::class);
+
+        /** Валидация всех объектов */
+        if($this->validatorCollection->isInvalid())
         {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
+            return $this->validatorCollection->getErrorUniqid();
         }
 
-        return $this->render();
+        $this->flush();
+
+        /** Отправляем сообщение в шину */
+        $this->messageDispatch->dispatch(
+            message: new AccountYandexMessage($this->main->getId(), $this->main->getEvent()),
+            transport: 'auth-yandex'
+        );
+
+        return $this->main;
     }
 }

@@ -19,19 +19,61 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 namespace BaksDev\Auth\Yandex\UseCase\Public\New;
 
 use BaksDev\Auth\Yandex\Entity\AccountYandex;
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEvent;
+use BaksDev\Auth\Yandex\Messenger\AccountYandexMessage;
+use BaksDev\Auth\Yandex\Repository\DBAL\ExistAccountYandexByYid\ExistAccountYandexByYidInterface;
 use BaksDev\Core\Entity\AbstractHandler;
+use BaksDev\Core\Messenger\MessageDispatchInterface;
+use BaksDev\Core\Validator\ValidatorCollectionInterface;
+use BaksDev\Files\Resources\Upload\File\FileUploadInterface;
+use BaksDev\Files\Resources\Upload\Image\ImageUploadInterface;
 use BaksDev\Users\User\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 
 final class NewAccountYandexHandler extends AbstractHandler
 {
+    public function __construct(
+        #[Target('authYandexLogger')] private readonly LoggerInterface $logger,
+        private readonly ExistAccountYandexByYidInterface $existAccountYandexByYidRepository,
+
+        EntityManagerInterface $entityManager,
+        MessageDispatchInterface $messageDispatch,
+        ValidatorCollectionInterface $validatorCollection,
+        ImageUploadInterface $imageUpload,
+        FileUploadInterface $fileUpload
+    )
+    {
+        parent::__construct($entityManager, $messageDispatch, $validatorCollection, $imageUpload, $fileUpload);
+    }
+
     public function handle(NewAccountYandexDTO $command): string|AccountYandex
     {
+        $Yid = $command->getInvariable()->getYid();
+
+        /** Проверка аккаунта Яндекс на уникальность */
+        $isExistsAccount = $this->existAccountYandexByYidRepository->isExist($Yid);
+
+        if(true === $isExistsAccount)
+        {
+            $this->logger->warning(
+                message: sprintf('Попытка создания аккаунта Яндекс с существующим yid: %s', $Yid),
+                context: [
+                    self::class.':'.__LINE__,
+                    $command,
+                ],
+            );
+
+            return uniqid();
+        }
+
         /** Создаем нового пользователя */
         $User = new User();
 
@@ -47,6 +89,12 @@ final class NewAccountYandexHandler extends AbstractHandler
 
         $this->persist($User);
         $this->flush();
+
+        /** Отправляем сообщение в шину */
+        $this->messageDispatch->dispatch(
+            message: new AccountYandexMessage($this->main->getId(), $this->main->getEvent()),
+            transport: 'auth-yandex'
+        );
 
         return $this->main;
     }

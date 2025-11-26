@@ -22,40 +22,42 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\UseCase\Public\New;
+declare(strict_types=1);
+
+namespace BaksDev\Auth\Yandex\UseCase\Admin\Delete;
 
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEventInterface;
 use BaksDev\Auth\Yandex\Type\Event\AccountYandexEventUid;
-use BaksDev\Auth\Yandex\UseCase\Public\New\Invariable\AccountYandexInvariableDTO;
-use BaksDev\Auth\Yandex\UseCase\Public\New\Status\AccountYandexStatusDTO;
+use BaksDev\Auth\Yandex\UseCase\Admin\Delete\Modify\ModifyDTO;
+use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * Объект для СОЗДАНИЯ аккаунта Yandex
- * @see AccountYandexEvent
- */
-final class NewAccountYandexDTO implements AccountYandexEventInterface
+/** @see AccountYandexEvent */
+final class AccountYandexDeleteDTO implements AccountYandexEventInterface
 {
     /**
      * Идентификатор события
      */
-    #[Assert\IsNull]
+    #[Assert\Uuid]
     private ?AccountYandexEventUid $id = null;
 
     /**
-     * Идентификатор пользователя в Yandex
+     * Идентификатор пользователя
      */
-    #[Assert\Valid]
-    private AccountYandexInvariableDTO $invariable;
+    #[Assert\NotBlank]
+    #[Assert\Uuid]
+    private readonly UserUid $account;
 
     /**
-     * Статус аккаунта
+     * Модификатор
      */
     #[Assert\Valid]
-    private AccountYandexStatusDTO $status;
+    private ModifyDTO $modify;
 
-    public function __construct() {
-        $this->status = new AccountYandexStatusDTO();
+
+    public function __construct()
+    {
+        $this->modify = new ModifyDTO();
     }
 
     /**
@@ -66,31 +68,31 @@ final class NewAccountYandexDTO implements AccountYandexEventInterface
         return $this->id;
     }
 
-    /**
-     * Идентификатор пользователя в Yandex
-     */
-    public function getInvariable(): AccountYandexInvariableDTO
+
+    public function setId(AccountYandexEventUid $id): void
     {
-        return $this->invariable;
+        $this->id = $id;
     }
 
-    public function setInvariable(AccountYandexInvariableDTO $invariable): self
+    /**
+     * Modify
+     */
+    public function getModify(): ModifyDTO
     {
-        $this->invariable = $invariable;
+        return $this->modify;
+    }
+
+    public function setModify(ModifyDTO $modify): self
+    {
+        $this->modify = $modify;
         return $this;
     }
 
     /**
-     * Статус аккаунта
+     * Account
      */
-    public function setStatus(AccountYandexStatusDTO $status): NewAccountYandexDTO
+    public function getAccount(): UserUid
     {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function getStatus(): AccountYandexStatusDTO
-    {
-        return $this->status;
+        return $this->account;
     }
 }

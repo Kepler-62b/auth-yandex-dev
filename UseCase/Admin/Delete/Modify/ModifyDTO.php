@@ -22,35 +22,30 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+namespace BaksDev\Auth\Yandex\UseCase\Admin\Delete\Modify;
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+use BaksDev\Auth\Yandex\Entity\Event\Modify\AccountYandexModifyInterface;
+use BaksDev\Core\Type\Modify\Modify\ModifyActionDelete;
+use BaksDev\Core\Type\Modify\ModifyAction;
+use Symfony\Component\Validator\Constraints as Assert;
 
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
+/** @see AccountYandexModify */
+final class ModifyDTO implements AccountYandexModifyInterface
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
-    {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
-        {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
-        }
+    /**
+     * Модификатор
+     */
+    #[Assert\NotBlank]
+    private readonly ModifyAction $action;
 
-        return $this->render();
+    public function __construct()
+    {
+        $this->action = new ModifyAction(ModifyActionDelete::class);
+    }
+
+    public function getAction(): ModifyAction
+    {
+        return $this->action;
     }
 }
+

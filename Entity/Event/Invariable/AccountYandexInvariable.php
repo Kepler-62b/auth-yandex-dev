@@ -70,6 +70,11 @@ class AccountYandexInvariable extends EntityReadonly
         $this->main = $event->getAccount();
     }
 
+    public function __toString(): string
+    {
+        return (string) $this->main;
+    }
+
     public function getDto($dto): mixed
     {
         if($dto instanceof AccountYandexInvariableInterface)

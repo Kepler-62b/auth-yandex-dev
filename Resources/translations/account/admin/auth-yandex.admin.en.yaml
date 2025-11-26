@@ -1,0 +1,23 @@
+page:
+  index: 'Yandex accounts of users'
+  new: 'Add User Yandex Account'
+  edit: 'Edit User Yandex Account'
+  delete: 'Delete Users Yandex Account'
+
+breadcrumb:
+  index: 'Yandex accounts of users'
+  new: 'Add User Yandex Account'
+  edit: 'Edit User Yandex Account'
+  delete: 'Delete Users Yandex Account'
+
+success:
+  new: 'Users Yandex account added successfully'
+  update: 'Users Yandex account updated successfully'
+  delete: 'Users Yandex account has been successfully deleted to trash'
+  restore: 'Users Yandex account successfully restored'
+
+danger:
+  new: '%s: Error adding user Yandex account'
+  update: '%s: Error updating user Yandex account'
+  delete: '%s: Error deleting users Yandex account'
+  restore: '%s: Error restoring users Yandex account'

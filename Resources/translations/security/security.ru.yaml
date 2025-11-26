@@ -1,0 +1,15 @@
+ROLE_ACCOUNT_YANDEX:
+  name: 'Yandex аккаунты'
+  desc: 'Список зрегистрированных пользователей Yandex'
+
+ROLE_ACCOUNT_YANDEX_INDEX:
+  name: 'Просмотр'
+  desc: ''
+
+ROLE_ACCOUNT_YANDEX_EDIT:
+  name: 'Редактировать'
+  desc: ''
+
+ROLE_ACCOUNT_YANDEX_DELETE:
+  name: 'Удалить'
+  desc: ''

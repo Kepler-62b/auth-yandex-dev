@@ -6,21 +6,21 @@
 </head>
 <body>
 
-<p>Авторизация завершена. Окно закроется автоматически</p>
+<p>Окно закроется автоматически</p>
 
 <script nonce='{{ csp_nonce() }}'>
 
     /** Проверяем, открыто ли это окно как всплывающее (а не в обычной вкладке) */
     if(window.opener && window.opener !== window)
     {
-        window.opener.postMessage({type: 'YANDEX_AUTH_SUCCESS'}, '*');
+        window.opener.postMessage({type: 'YANDEX_AUTH'}, '*');
 
         /** Закрываем текущее окно */
         window.close();
     } else
     {
         /** Если окно не было открыто через window.open — просто показываем сообщение */
-        document.body.innerHTML = '<p>Авторизация завершена. Окно закроется автоматически</p>';
+        document.body.innerHTML = '<p>Окно закроется автоматически</p>';
         window.location.replace(window.location.origin);
     }
 </script>

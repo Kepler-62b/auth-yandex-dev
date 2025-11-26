@@ -1,0 +1,15 @@
+ROLE_ACCOUNT_YANDEX:
+  name: 'Yandex accounts'
+  desc: 'List of registered Yandex users'
+
+ROLE_ACCOUNT_YANDEX_INDEX:
+  name: 'View'
+  desc: ''
+
+ROLE_ACCOUNT_YANDEX_EDIT:
+  name: 'Edit'
+  desc: ''
+
+ROLE_ACCOUNT_YANDEX_DELETE:
+  name: 'Delete'
+  desc: ''

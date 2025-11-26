@@ -22,35 +22,33 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+declare(strict_types=1);
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+namespace BaksDev\Auth\Yandex\UseCase\Admin\Delete;
 
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
+use BaksDev\Auth\Yandex\Entity\AccountYandex;
+use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEvent;
+use BaksDev\Core\Entity\AbstractHandler;
+
+final class AccountYandexDeleteHandler extends AbstractHandler
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
+    /** @see AccountYandex */
+    public function handle(AccountYandexDeleteDTO $command): string|AccountYandex
     {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
+        $this
+            ->setCommand($command)
+            ->preEventRemove(new AccountYandex($command->getAccount()), new AccountYandexEvent());
+
+        /** Валидация всех объектов */
+        if($this->validatorCollection->isInvalid())
         {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
+            return $this->validatorCollection->getErrorUniqid();
         }
 
-        return $this->render();
+        $this->flush();
+
+        $this->messageDispatch->addClearCacheOther('auth-yandex');
+
+        return $this->main;
     }
 }

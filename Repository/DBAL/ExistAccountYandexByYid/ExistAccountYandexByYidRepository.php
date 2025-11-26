@@ -1,17 +1,17 @@
 <?php
 /*
  *  Copyright 2025.  Baks.dev <admin@baks.dev>
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
  *  in the Software without restriction, including without limitation the rights
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is furnished
  *  to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in all
  *  copies or substantial portions of the Software.
- *  
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,58 +22,45 @@
  *
  */
 
-declare(strict_types=1);
+namespace BaksDev\Auth\Yandex\Repository\DBAL\ExistAccountYandexByYid;
 
-namespace BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid;
-
-use BaksDev\Auth\Yandex\Entity\AccountYandex;
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEvent;
 use BaksDev\Auth\Yandex\Entity\Event\Invariable\AccountYandexInvariable;
-use BaksDev\Core\Doctrine\ORMQueryBuilder;
+use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
-final readonly class AccountYandexEventByCidRepository implements AccountYandexEventByCidInterface
+/**
+ * Проверяет существование записи с аккаунтом Яндекс по идентификатору из Invariable
+ */
+#[Autoconfigure(public: true)] // @TODO удалить при релизе
+final readonly class ExistAccountYandexByYidRepository implements ExistAccountYandexByYidInterface
 {
     public function __construct(
-        private ORMQueryBuilder $ORMQueryBuilder
+        private DBALQueryBuilder $DBALQueryBuilder,
     ) {}
 
-    /**
-     * Метод возвращает текущее активное событие
-     */
-    public function find(string $yid): AccountYandexEvent|false
+    public function isExist(string $yid): bool
     {
-        $orm = $this->ORMQueryBuilder->createQueryBuilder(self::class);
+        $dbal = $this->DBALQueryBuilder->createQueryBuilder(self::class);
 
-        $orm->from(AccountYandex::class, 'main');
+        $dbal->from(AccountYandexEvent::class, 'account_yandex_event');
 
-        $orm
-            ->select('event')
+        $dbal
             ->join(
-                AccountYandexEvent::class,
-                'event',
-                'WITH',
-                '
-                    event.id = main.event
-                    '
-            );
-
-        $orm
-            ->join(
+                'account_yandex_event',
                 AccountYandexInvariable::class,
-                'invariable',
-                'WITH',
+                'account_yandex_invariable',
                 '
-                    invariable.event = main.event AND
-                    invariable.yid = :yid
-                    '
-            )
-            ->setParameter(
+                    account_yandex_invariable.main = account_yandex_event.account AND
+                    account_yandex_invariable.event = account_yandex_event.id AND 
+                    account_yandex_invariable.yid = :yid'
+            )->setParameter(
                 key: 'yid',
                 value: $yid,
                 type: Types::STRING
             );
 
-        return $orm->getOneOrNullResult() ?: false;
+        return $dbal->fetchExist();
     }
 }

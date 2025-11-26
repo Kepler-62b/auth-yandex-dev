@@ -22,35 +22,32 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+declare(strict_types=1);
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+namespace BaksDev\Auth\Yandex\UseCase\Admin\Delete;
 
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+final class AccountYandexDeleteForm extends AbstractType
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
-        {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
-        }
+        $builder->add(
+            'account_yandex_delete',
+            SubmitType::class,
+            ['label' => 'Save', 'label_html' => true, 'attr' => ['class' => 'btn-danger']]
+        );
+    }
 
-        return $this->render();
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => AccountYandexDeleteDTO::class,
+            'method' => 'POST',
+            'attr' => ['class' => 'w-100'],
+        ]);
     }
 }

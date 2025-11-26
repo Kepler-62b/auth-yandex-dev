@@ -22,40 +22,41 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\UseCase\Public\New;
+namespace BaksDev\Auth\Yandex\UseCase\Admin\Edit;
 
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEventInterface;
 use BaksDev\Auth\Yandex\Type\Event\AccountYandexEventUid;
-use BaksDev\Auth\Yandex\UseCase\Public\New\Invariable\AccountYandexInvariableDTO;
-use BaksDev\Auth\Yandex\UseCase\Public\New\Status\AccountYandexStatusDTO;
+use BaksDev\Auth\Yandex\UseCase\Admin\Edit\Status\AccountYandexStatusDTO;
+use BaksDev\Users\User\Type\Id\UserUid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * Объект для СОЗДАНИЯ аккаунта Yandex
+ * Объект для РЕДАКТИРОВАНИЯ аккаунта Yandex
  * @see AccountYandexEvent
  */
-final class NewAccountYandexDTO implements AccountYandexEventInterface
+final class EditAccountYandexDTO implements AccountYandexEventInterface
 {
     /**
      * Идентификатор события
      */
-    #[Assert\IsNull]
-    private ?AccountYandexEventUid $id = null;
+    #[Assert\Uuid]
+    private readonly AccountYandexEventUid $id;
+
+    /**
+     * Идентификатор профиля
+     */
+    #[Assert\Uuid]
+    private readonly UserUid $account;
 
     /**
      * Идентификатор пользователя в Yandex
      */
     #[Assert\Valid]
-    private AccountYandexInvariableDTO $invariable;
-
-    /**
-     * Статус аккаунта
-     */
-    #[Assert\Valid]
     private AccountYandexStatusDTO $status;
 
-    public function __construct() {
-        $this->status = new AccountYandexStatusDTO();
+    public function __construct(AccountYandexEventUid $id)
+    {
+        $this->id = $id;
     }
 
     /**
@@ -67,23 +68,17 @@ final class NewAccountYandexDTO implements AccountYandexEventInterface
     }
 
     /**
-     * Идентификатор пользователя в Yandex
+     * Идентификатор профиля
      */
-    public function getInvariable(): AccountYandexInvariableDTO
+    public function getAccount(): UserUid
     {
-        return $this->invariable;
-    }
-
-    public function setInvariable(AccountYandexInvariableDTO $invariable): self
-    {
-        $this->invariable = $invariable;
-        return $this;
+        return $this->account;
     }
 
     /**
      * Статус аккаунта
      */
-    public function setStatus(AccountYandexStatusDTO $status): NewAccountYandexDTO
+    public function setStatus(AccountYandexStatusDTO $status): EditAccountYandexDTO
     {
         $this->status = $status;
         return $this;
@@ -93,4 +88,5 @@ final class NewAccountYandexDTO implements AccountYandexEventInterface
     {
         return $this->status;
     }
+
 }

@@ -22,35 +22,15 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+use BaksDev\Auth\Yandex\BaksDevAuthYandexBundle;
+use Symfony\Config\FrameworkConfig;
 
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
-{
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
-    {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
-        {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
-        }
+return static function(FrameworkConfig $config) {
 
-        return $this->render();
-    }
-}
+    $config->translator()
+        ->paths([BaksDevAuthYandexBundle::PATH.implode(
+                DIRECTORY_SEPARATOR, ['Resources', 'translations', '']
+            )]);
+};

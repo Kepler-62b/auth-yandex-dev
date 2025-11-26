@@ -1,6 +1,6 @@
 <?php
 /*
- *  Copyright 2023.  Baks.dev <admin@baks.dev>
+ *  Copyright 2025.  Baks.dev <admin@baks.dev>
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a copy
  *  of this software and associated documentation files (the "Software"), to deal
@@ -19,6 +19,7 @@
  *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
+ *
  */
 
 declare(strict_types=1);
@@ -31,18 +32,14 @@ use BaksDev\Auth\Yandex\Api\PersonalInfo\YandexPersonalInfoDTO;
 use BaksDev\Auth\Yandex\Api\PersonalInfo\YandexPersonalInfoRequest;
 use BaksDev\Auth\Yandex\Entity\AccountYandex;
 use BaksDev\Auth\Yandex\Entity\Event\AccountYandexEvent;
+use BaksDev\Auth\Yandex\Messenger\CreateUserProfileDispatcher\CreateUserProfileMessage;
 use BaksDev\Auth\Yandex\Repository\ORM\AccountYandexEventByCid\AccountYandexEventByCidInterface;
 use BaksDev\Auth\Yandex\UseCase\Public\New\Invariable\AccountYandexInvariableDTO;
 use BaksDev\Auth\Yandex\UseCase\Public\New\NewAccountYandexDTO;
 use BaksDev\Auth\Yandex\UseCase\Public\New\NewAccountYandexHandler;
 use BaksDev\Core\Cache\AppCacheInterface;
-use BaksDev\Users\Profile\TypeProfile\Type\Id\Choice\TypeProfileUser;
-use BaksDev\Users\Profile\TypeProfile\Type\Id\TypeProfileUid;
+use BaksDev\Core\Messenger\MessageDispatchInterface;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
-use BaksDev\Users\Profile\UserProfile\Type\UserProfileStatus\Status\UserProfileStatusActive;
-use BaksDev\Users\Profile\UserProfile\Type\UserProfileStatus\UserProfileStatus;
-use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileDTO;
-use BaksDev\Users\Profile\UserProfile\UseCase\User\NewEdit\UserProfileHandler;
 use BaksDev\Users\User\Entity\User;
 use BaksDev\Users\User\Repository\GetUserById\GetUserByIdInterface;
 use Psr\Log\LoggerInterface;
@@ -56,6 +53,7 @@ use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class YandexAuthenticator extends AbstractAuthenticator
 {
@@ -63,12 +61,13 @@ final class YandexAuthenticator extends AbstractAuthenticator
         #[Target('authYandexLogger')] private readonly LoggerInterface $logger,
         private readonly AppCacheInterface $cache,
         private readonly UrlGeneratorInterface $urlGenerator,
+        protected readonly MessageDispatchInterface $messageDispatch,
         private readonly GetUserByIdInterface $userByIdRepository,
         private readonly AccountYandexEventByCidInterface $accountYandexEventByCidRepository,
         private readonly NewAccountYandexHandler $newAccountYandexHandler,
-        private readonly UserProfileHandler $userProfileHandler,
         private readonly YandexOAuthTokenRequest $yandexAuthTokenRequest,
         private readonly YandexPersonalInfoRequest $yandexPersonalInfoRequest,
+        private readonly TranslatorInterface $translator,
     ) {}
 
     public function supports(Request $request): ?bool
@@ -126,14 +125,12 @@ final class YandexAuthenticator extends AbstractAuthenticator
         /** Уникальный идентификатор пользователя в Яндекс */
         $yandexUserId = $YandexPersonalInfoDTO->getId();
 
-        $yandexAccountLogin = $YandexPersonalInfoDTO->getLogin();
-
         return new SelfValidatingPassport(
             new UserBadge('auth-yandex-'.$yandexUserId, function()
             use (
                 $request,
                 $yandexUserId,
-                $yandexAccountLogin
+                $YandexPersonalInfoDTO
             ) {
 
                 $accountYandexEvent = $this->accountYandexEventByCidRepository->find($yandexUserId);
@@ -144,6 +141,15 @@ final class YandexAuthenticator extends AbstractAuthenticator
                     true === $accountYandexEvent->getStatus()->isInactive()
                 )
                 {
+                    $this->logger->warning(
+                        message: 'Попытка аутентификации неактивного Яндекс аккаунта',
+                        context: [
+                            self::class.':'.__LINE__,
+                            $accountYandexEvent->getAccount(),
+                            'Yid' => $accountYandexEvent->getInvariable()->getYid(),
+                        ]
+                    );
+
                     return null;
                 }
 
@@ -178,32 +184,23 @@ final class YandexAuthenticator extends AbstractAuthenticator
                     }
 
                     /**
-                     * Создаем профиль пользователя
+                     * Бросаем сообщение СИНХРОННО для создания профиля
+                     * @see CreateUserProfileDispatcher
                      */
+                    $CreateUserProfile = $this->messageDispatch->dispatch(
+                        message: new CreateUserProfileMessage(
+                            $AccountYandex->getId(),
+                            $AccountYandex->getEvent(),
+                            $YandexPersonalInfoDTO
+                        ));
 
-                    $UserProfileDTO = new UserProfileDTO();
-                    $UserProfileDTO->setSort(100);
-                    $UserProfileDTO->setType(new TypeProfileUid(TypeProfileUser::class));
-                    $UserProfileDTO->getPersonal()->setUsername($yandexAccountLogin);
-
-                    $InfoDTO = $UserProfileDTO->getInfo();
-                    $InfoDTO->setUsr($AccountYandex->getId());
-                    $InfoDTO->setUrl($yandexAccountLogin);
-                    $InfoDTO->setStatus(new UserProfileStatus(UserProfileStatusActive::class));
-
-                    $UserProfile = $this->userProfileHandler->handle($UserProfileDTO);
-
-                    if(false === $UserProfile instanceof UserProfile)
+                    /** Сообщение об ошибке создания профиля */
+                    if(false === $CreateUserProfile)
                     {
-                        $this->logger->critical(
-                            message: sprintf(
-                                '%s: Ошибка при создании профиля пользователя',
-                                $UserProfile
-                            ),
-                            context: [self::class.':'.__LINE__]
+                        $request->getSession()->getFlashBag()->add(
+                            $this->translator->trans('login.error.header', domain: 'public.profile'),
+                            $this->translator->trans('login.error.message', domain: 'public.profile'),
                         );
-
-                        return null;
                     }
                 }
 

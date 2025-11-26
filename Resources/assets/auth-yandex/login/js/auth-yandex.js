@@ -51,7 +51,7 @@ executeFunc(function authYandex()
 
         const features = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
 
-        const authWindow = window.open(authUrl, 'yandexAuth', features);
+        const authWindow = window.open(authUrl, 'authYandex', features);
 
         if(authWindow)
         {
@@ -65,22 +65,12 @@ executeFunc(function authYandex()
     window.addEventListener('message', function(event)
     {
         /**
-         * Сообщение от js на странице /auth/yandex
-         * */
-
-        if(event.data.type === 'YANDEX_AUTH_SUCCESS')
+         * Сообщение от js скрипта со страницы /auth/yandex
+         */
+        if(event.data.type === 'YANDEX_AUTH')
         {
             /** Редирект на главную */
             window.location.replace(window.location.origin);
-        }
-
-        if(event.data.type === 'YANDEX_AUTH_FALIED')
-        {
-            let $successSupplyToast = "{ \"type\":\"danger\" , " +
-                "\"header\":\"Авторизация Яндекс\"  , " +
-                "\"message\" : \"Ошибка аутентификации\" }";
-
-            createToast(JSON.parse($successSupplyToast));
         }
     });
 

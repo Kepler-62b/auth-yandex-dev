@@ -1,0 +1,4 @@
+login:
+  error:
+    header: 'Eerror'
+    message: 'User profile not created'

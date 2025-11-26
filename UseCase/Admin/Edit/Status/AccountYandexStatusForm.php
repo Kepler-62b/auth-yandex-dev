@@ -22,35 +22,39 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+declare(strict_types=1);
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+namespace BaksDev\Auth\Yandex\UseCase\Admin\Edit\Status;
 
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+final class AccountYandexStatusForm extends AbstractType
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
-        {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
-        }
+        //        $builder->add('value', CheckboxType::class, ['required' => false]);
 
-        return $this->render();
+        $builder->add('value', ChoiceType::class, [
+            'choices' => [true, false],
+            'choice_value' => function(bool $status) {
+                return $status;
+            },
+            'choice_label' => function(bool $status) {
+                return true === $status ? 'Активный' : 'Неактивный';
+            },
+            'label' => false,
+        ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'data_class' => AccountYandexStatusDTO::class,
+            'method' => 'POST',
+            'attr' => ['class' => 'w-100'],
+        ]);
     }
 }

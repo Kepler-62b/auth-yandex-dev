@@ -22,35 +22,12 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+namespace BaksDev\Auth\Yandex\Repository\DBAL\ExistAccountYandexByYid;
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
-
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
+/**
+ * Проверяет существование записи с аккаунтом Яндекс по идентификатору из Invariable
+ */
+interface ExistAccountYandexByYidInterface
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
-    {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
-        {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
-        }
-
-        return $this->render();
-    }
+    public function isExist(string $yid): bool;
 }

@@ -22,35 +22,14 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+declare(strict_types=1);
 
-use BaksDev\Core\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Attribute\AsController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
+namespace BaksDev\Auth\Yandex\Repository\DBAL\AllAccountYandex;
 
-/** @see YandexAuthenticator */
-#[AsController]
-final class AuthController extends AbstractController
+use BaksDev\Core\Services\Paginator\PaginatorInterface;
+
+interface AllAccountYandexInterface
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
-        Request $request,
-    ): ?Response
-    {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
-        {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
-        }
-
-        return $this->render();
-    }
+    /** Метод возвращает пагинатор AccountYandex */
+    public function findAll(): PaginatorInterface;
 }

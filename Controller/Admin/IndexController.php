@@ -22,35 +22,50 @@
  *
  */
 
-namespace BaksDev\Auth\Yandex\Controller\Public;
+declare(strict_types=1);
 
+namespace BaksDev\Auth\Yandex\Controller\Admin;
+
+use BaksDev\Auth\Yandex\Repository\DBAL\AllAccountYandex\AllAccountYandexInterface;
 use BaksDev\Core\Controller\AbstractController;
+use BaksDev\Core\Form\Search\SearchDTO;
+use BaksDev\Core\Form\Search\SearchForm;
+use BaksDev\Core\Listeners\Event\Security\RoleSecurity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
 
-/** @see YandexAuthenticator */
 #[AsController]
-final class AuthController extends AbstractController
+#[RoleSecurity('ROLE_ACCOUNT_YANDEX_INDEX')]
+final class IndexController extends AbstractController
 {
-    #[Route('/auth/yandex', name: 'public.auth')]
-    public function auth(
+    #[Route('/admin/account/yandex/{page<\d+>}', name: 'admin.index', methods: ['GET'])]
+    public function index(
         Request $request,
-    ): ?Response
+        AllAccountYandexInterface $allAccountYandexRepository,
+        int $page = 0,
+    ): Response
     {
-        /** Если пользователь не аутентифицирован через YandexAuthenticator */
-        if(false === $this->getUsr() instanceof UserInterface)
-        {
-            $this->addFlash
-            (
-                'danger',
-                'danger.error',
-                'auth-yandex.public',
-            );
-        }
+        /** Поиск */
+        $searchForm = $this
+            ->createForm(
+                type: SearchForm::class,
+                data: $search = new SearchDTO(),
+                options: ['action' => $this->generateUrl('auth-yandex:admin.index')]
+            )
+            ->handleRequest($request);
 
-        return $this->render();
+        /** Получаем список */
+        $AccountTelegram = $allAccountYandexRepository
+            ->search($search)
+            ->findAll();
+
+        return $this->render(
+            [
+                'query' => $AccountTelegram,
+                'search' => $searchForm->createView(),
+            ]
+        );
     }
 }
