@@ -40,10 +40,11 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
 #[Group('auth-yandex')]
+#[Group('auth-yandex-usecase')]
 #[When(env: 'test')]
 class EditAccountYandexHandlerTest extends KernelTestCase
 {
-    #[DependsOnClass(EditAccountYandexHandlerTest::class)]
+    #[DependsOnClass(NewAccountYandexHandlerTest::class)]
     public function testUseCase(): void
     {
         /** @var EntityManagerInterface $em */

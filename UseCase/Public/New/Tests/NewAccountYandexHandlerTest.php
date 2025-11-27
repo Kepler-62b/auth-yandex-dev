@@ -39,6 +39,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\Attribute\When;
 
 #[Group('auth-yandex')]
+#[Group('auth-yandex-usecase')]
 #[When(env: 'test')]
 class NewAccountYandexHandlerTest extends KernelTestCase
 {
@@ -64,6 +65,7 @@ class NewAccountYandexHandlerTest extends KernelTestCase
         }
 
         $User = $em->getReference(User::class, new UserUid(UserUid::TEST));
+
 
         if($User instanceof User)
         {

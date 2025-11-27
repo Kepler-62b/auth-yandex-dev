@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace BaksDev\Auth\Yandex\Security;
 
+use BaksDev\Auth\Email\Messenger\CreateAccount\CreateAccountMessage;
+use BaksDev\Auth\Email\Type\Email\AccountEmail;
 use BaksDev\Auth\Yandex\Api\AuthToken\YandexOAuthTokenDTO;
 use BaksDev\Auth\Yandex\Api\AuthToken\YandexOAuthTokenRequest;
 use BaksDev\Auth\Yandex\Api\PersonalInfo\YandexPersonalInfoDTO;
@@ -39,7 +41,6 @@ use BaksDev\Auth\Yandex\UseCase\Public\New\NewAccountYandexDTO;
 use BaksDev\Auth\Yandex\UseCase\Public\New\NewAccountYandexHandler;
 use BaksDev\Core\Cache\AppCacheInterface;
 use BaksDev\Core\Messenger\MessageDispatchInterface;
-use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 use BaksDev\Users\User\Entity\User;
 use BaksDev\Users\User\Repository\GetUserById\GetUserByIdInterface;
 use Psr\Log\LoggerInterface;
@@ -98,7 +99,7 @@ final class YandexAuthenticator extends AbstractAuthenticator
 
     public function authenticate(Request $request): Passport
     {
-        /** Получаем токен Яндекс OAuth */
+        /** Получаем токен Яндекс OAuth для запроса пользовательских данных */
         $YandexAuthTokenDTO = $this->yandexAuthTokenRequest->get($request->query->get('code'));
 
         if(false === $YandexAuthTokenDTO instanceof YandexOAuthTokenDTO)
@@ -135,7 +136,7 @@ final class YandexAuthenticator extends AbstractAuthenticator
 
                 $accountYandexEvent = $this->accountYandexEventByCidRepository->find($yandexUserId);
 
-                /** Если аккаунт не активный в нашем приложении */
+                /** Если аккаунт создан НО НЕ АКТИВНЫЙ в нашем приложении */
                 if(
                     true === $accountYandexEvent instanceof AccountYandexEvent &&
                     true === $accountYandexEvent->getStatus()->isInactive()
@@ -154,10 +155,11 @@ final class YandexAuthenticator extends AbstractAuthenticator
                 }
 
                 /**
-                 * Если аккаунта нет - создаю:
+                 * Если аккаунта нет - создаем:
                  * - User
                  * - Account
                  * - UserProfile
+                 * - Account (при наличии email в информации о пользователе)
                  */
                 if(false === $accountYandexEvent instanceof AccountYandexEvent)
                 {
@@ -200,6 +202,21 @@ final class YandexAuthenticator extends AbstractAuthenticator
                         $request->getSession()->getFlashBag()->add(
                             $this->translator->trans('login.error.header', domain: 'public.profile'),
                             $this->translator->trans('login.error.message', domain: 'public.profile'),
+                        );
+                    }
+
+                    if(null !== $YandexPersonalInfoDTO->getDefaultEmail())
+                    {
+                        /**
+                         * Бросаем сообщение для создания аккаунта с email
+                         * @see CreateAccountDispatcher
+                         */
+                        $this->messageDispatch->dispatch(
+                            message: new CreateAccountMessage(
+                                $AccountYandex->getId(),
+                                new AccountEmail($YandexPersonalInfoDTO->getDefaultEmail())
+                            ),
+                            transport: 'auth-email',
                         );
                     }
                 }

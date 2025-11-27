@@ -35,6 +35,7 @@ use BaksDev\Core\Doctrine\DBALQueryBuilder;
 use BaksDev\Core\Form\Search\SearchDTO;
 use BaksDev\Core\Services\Paginator\PaginatorInterface;
 use BaksDev\Users\Profile\UserProfile\Entity\Event\Info\UserProfileInfo;
+use BaksDev\Users\Profile\UserProfile\Entity\Event\Personal\UserProfilePersonal;
 use BaksDev\Users\Profile\UserProfile\Entity\UserProfile;
 
 final class AllAccountYandexRepository implements AllAccountYandexInterface
@@ -112,7 +113,7 @@ final class AllAccountYandexRepository implements AllAccountYandexInterface
             );
 
         /** Активное событие профиля */
-        $dbal->join(
+        $dbal->leftJoin(
             'users_profile_info',
             UserProfile::class,
             'users_profile',
@@ -120,6 +121,16 @@ final class AllAccountYandexRepository implements AllAccountYandexInterface
                 users_profile.id = users_profile_info.profile AND
                 users_profile.event = users_profile_info.event'
         );
+
+        /** Personal */
+        $dbal
+            ->addSelect('users_profile_personal.username AS users_profile_username')
+            ->leftJoin(
+                'users_profile',
+                UserProfilePersonal::class,
+                'users_profile_personal',
+                'users_profile_personal.event = users_profile.event',
+            );
 
         /** Поиск */
         if($this->search && $this->search->getQuery())

@@ -13,3 +13,7 @@
     {{ include(_self|replace({ "template.html.twig": baks_settings.device~"/content.html.twig" })) }}
 
 {% endblock %}
+
+{% block javascript %}
+<script nonce='{{ csp_nonce() }}' async data-src="/assets/{{ version }}/js/copy.min.js" class="lazy"></script>
+{% endblock %}

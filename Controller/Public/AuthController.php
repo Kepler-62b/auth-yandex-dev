@@ -31,7 +31,12 @@ use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-/** @see YandexAuthenticator */
+/**
+ * prev @see YandexAuthenticator
+ *
+ * Возвращает шаблон с js скриптом, который будет открыт во всплывающем окне.
+ * js скриптом отправляет сообщение родительскому окну, который редиректит на главную страницу.
+ */
 #[AsController]
 final class AuthController extends AbstractController
 {

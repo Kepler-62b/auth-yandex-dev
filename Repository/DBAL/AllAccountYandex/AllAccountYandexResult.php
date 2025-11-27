@@ -37,7 +37,8 @@ final readonly class AllAccountYandexResult
         private string $event,
         private bool $yandex_status,
         private string $yandex_update,
-        private string $users_profile_url,
+        private ?string $users_profile_url,
+        private ?string $users_profile_username,
     ) {}
 
     public function getId(): UserUid
@@ -60,8 +61,13 @@ final readonly class AllAccountYandexResult
         return new DateTimeImmutable($this->yandex_update);
     }
 
-    public function getUsersProfileUrl(): string
+    public function getUsersProfileUrl(): ?string
     {
         return $this->users_profile_url;
+    }
+
+    public function getUsersProfileUsername(): ?string
+    {
+        return $this->users_profile_username;
     }
 }

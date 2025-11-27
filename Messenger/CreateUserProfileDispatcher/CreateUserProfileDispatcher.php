@@ -59,7 +59,7 @@ final readonly class CreateUserProfileDispatcher
 
         $InfoDTO = $UserProfileDTO->getInfo();
         $InfoDTO->setUsr($message->getId());
-        $InfoDTO->setUrl($login.uniqid('', false));
+        $InfoDTO->setUrl($login.uniqid('_', false));
         $InfoDTO->setStatus(new UserProfileStatus(UserProfileStatusActive::class));
 
         $UserProfile = $this->userProfileHandler->handle($UserProfileDTO);
